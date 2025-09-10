@@ -69,7 +69,7 @@ body, html {
   align-items: center;
   overflow: hidden;
   z-index: 5;
-  pointer-events: none; /* so it doesn’t block video */
+  pointer-events: none;
 }
 
 #programs {
