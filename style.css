@@ -9,7 +9,7 @@ html, body {
 
 /* Start Screen */
 #start-screen {
-  position: absolute;
+  position: fixed;
   top:0; left:0; width:100%; height:100%;
   display:flex; justify-content:center; align-items:center;
   background:black; color:white;
@@ -22,11 +22,15 @@ html, body {
   cursor: pointer;
 }
 
+/* Main container uses flex column */
+#main-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* full viewport height */
+}
+
 /* Top bar */
 #top-bar {
-  position: absolute;
-  top: 0;
-  width: 100%;
   height: 50px;
   background-color: #111;
   display: flex;
@@ -34,33 +38,34 @@ html, body {
   align-items: center;
   padding: 0 20px;
   box-sizing: border-box;
-  z-index: 5;
+  flex-shrink: 0; /* do not shrink */
 }
 
-/* Main container */
-#main-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  margin-top: 50px; /* space for top bar */
+#channel-name {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+#live-time {
+  font-size: 16px;
 }
 
 /* Video fills remaining space */
 #tv {
-  flex: 1;
+  flex: 1; /* takes remaining space between top and bottom */
   width: 100%;
   background-color: black;
   object-fit: cover;
 }
 
-/* Program section */
+/* Program section at bottom */
 #program-section {
-  width: 100%;
   height: 100px;
   background-color: #111;
   display: flex;
   align-items: center;
   overflow: hidden;
+  flex-shrink: 0; /* fixed height */
 }
 
 #programs {
@@ -83,6 +88,7 @@ html, body {
   font-size: 16px;
 }
 
+/* Scroll animation */
 @keyframes scroll {
   0% { transform: translateX(100%); }
   100% { transform: translateX(-100%); }
