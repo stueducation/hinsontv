@@ -35,7 +35,7 @@ body, html {
   align-items: center;
   padding: 0 20px;
   box-sizing: border-box;
-  z-index: 2;
+  z-index: 5;
 }
 
 #channel-name {
@@ -49,9 +49,13 @@ body, html {
 
 /* Video fills the entire background */
 #tv {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  z-index: 0;
 }
 
 /* TV program ticker at the bottom */
@@ -59,12 +63,13 @@ body, html {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 100px;
-  background-color: rgba(0,0,0,0.8);
+  height: 60px;
+  background-color: rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   overflow: hidden;
-  z-index: 2;
+  z-index: 5;
+  pointer-events: none; /* so it doesn’t block video */
 }
 
 #programs {
@@ -76,6 +81,7 @@ body, html {
 .program {
   margin-right: 50px;
   text-align: center;
+  text-shadow: 1px 1px 2px black;
 }
 
 .program-time {
