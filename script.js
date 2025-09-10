@@ -21,7 +21,7 @@ function playNext() {
 startBtn.addEventListener('click', () => {
   startScreen.style.display = 'none';
   tv.muted = false;
-  tv.play(); // this click triggers sound
+  tv.play(); // direct user gesture enables sound
   tv.addEventListener('ended', playNext);
 });
 
