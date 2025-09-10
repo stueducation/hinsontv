@@ -2,31 +2,26 @@ const tv = document.getElementById('tv');
 const startScreen = document.getElementById('start-screen');
 const startBtn = document.getElementById('start-btn');
 
-// Video playlist
-const videos = [
-  "video1.mp4",
-  "video2.mp4",
-  "video3.mp4"
-];
-
+// Local video files
+const videos = ["video1.mp4", "video2.mp4", "video3.mp4"];
 let current = 0;
 
 // Load first video
 tv.src = videos[current];
 current = (current + 1) % videos.length;
 
-// Function to play next video
+// Play next video
 function playNext() {
   tv.src = videos[current];
   tv.play();
   current = (current + 1) % videos.length;
 }
 
-// Start TV button click
+// Start button click
 startBtn.addEventListener('click', () => {
   startScreen.style.display = 'none';
-  tv.muted = false; // enable sound
-  tv.play(); // direct user gesture allows sound
+  tv.muted = false;
+  tv.play(); // this click triggers sound
   tv.addEventListener('ended', playNext);
 });
 
@@ -38,6 +33,5 @@ function updateTime() {
   const seconds = String(now.getSeconds()).padStart(2,'0');
   document.getElementById('live-time').textContent = `${hours}:${minutes}:${seconds}`;
 }
-
 setInterval(updateTime, 1000);
 updateTime();
