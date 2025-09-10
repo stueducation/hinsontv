@@ -1,0 +1,79 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: black;
+  font-family: Arial, sans-serif;
+  color: white;
+  overflow: hidden;
+}
+
+/* Top bar with channel name and live time */
+#top-bar {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 50px;
+  background-color: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+#channel-name {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+#live-time {
+  font-size: 16px;
+}
+
+/* Video fills the entire background */
+#tv {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* TV program ticker at the bottom */
+#program-ticker {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100px;
+  background-color: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  z-index: 2;
+}
+
+#programs {
+  display: flex;
+  white-space: nowrap;
+  animation: scroll 30s linear infinite;
+}
+
+.program {
+  margin-right: 50px;
+  text-align: center;
+}
+
+.program-time {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.program-title {
+  font-size: 16px;
+}
+
+/* Scroll animation */
+@keyframes scroll {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
