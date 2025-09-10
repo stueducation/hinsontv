@@ -2,10 +2,9 @@ body, html {
   margin: 0;
   padding: 0;
   height: 100%;
-  background-color: black;
   font-family: Arial, sans-serif;
   color: white;
-  overflow: hidden;
+  background-color: black;
 }
 
 /* Start Screen */
@@ -23,13 +22,13 @@ body, html {
   cursor: pointer;
 }
 
-/* Top bar with channel name and live time */
+/* Top bar */
 #top-bar {
   position: absolute;
   top: 0;
   width: 100%;
   height: 50px;
-  background-color: rgba(0,0,0,0.7);
+  background-color: #111;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -47,29 +46,27 @@ body, html {
   font-size: 16px;
 }
 
-/* Video fills the entire background */
+/* Video Container */
+#video-container {
+  width: 100%;
+  height: calc(100vh - 100px); /* leaves space for program section below */
+  background-color: black;
+}
+
 #tv {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 0;
 }
 
-/* TV program ticker at the bottom */
-#program-ticker {
-  position: absolute;
-  bottom: 0;
+/* Program Section (Below Video) */
+#program-section {
   width: 100%;
-  height: 60px;
-  background-color: rgba(0,0,0,0.5);
+  height: 100px;
+  background-color: #111;
   display: flex;
   align-items: center;
   overflow: hidden;
-  z-index: 5;
-  pointer-events: none;
 }
 
 #programs {
@@ -81,7 +78,6 @@ body, html {
 .program {
   margin-right: 50px;
   text-align: center;
-  text-shadow: 1px 1px 2px black;
 }
 
 .program-time {
