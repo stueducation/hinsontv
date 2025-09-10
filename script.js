@@ -11,11 +11,11 @@ const videos = [
 
 let current = 0;
 
-// Load first video in the <video> element
+// Load first video
 tv.src = videos[current];
 current = (current + 1) % videos.length;
 
-// Function to play next video in loop
+// Function to play next video
 function playNext() {
   tv.src = videos[current];
   tv.play();
@@ -26,7 +26,7 @@ function playNext() {
 startBtn.addEventListener('click', () => {
   startScreen.style.display = 'none';
   tv.muted = false; // enable sound
-  tv.play(); // this direct play counts as user gesture
+  tv.play(); // direct user gesture allows sound
   tv.addEventListener('ended', playNext);
 });
 
