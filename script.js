@@ -21,7 +21,7 @@ function playNext() {
 startBtn.addEventListener('click', () => {
   startScreen.style.display = 'none';
   tv.muted = false;
-  tv.play(); // direct user gesture enables sound
+  tv.play(); // user gesture enables sound
   tv.addEventListener('ended', playNext);
 });
 
@@ -33,5 +33,6 @@ function updateTime() {
   const seconds = String(now.getSeconds()).padStart(2,'0');
   document.getElementById('live-time').textContent = `${hours}:${minutes}:${seconds}`;
 }
+
 setInterval(updateTime, 1000);
 updateTime();
