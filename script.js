@@ -1,12 +1,21 @@
+const tv = document.getElementById('tv');
+const startScreen = document.getElementById('start-screen');
+const startBtn = document.getElementById('start-btn');
+
 // Video playlist
 const videos = [
   "video1.mp4",
   "video2.mp4",
   "video3.mp4"
 ];
-
 let current = 0;
-const tv = document.getElementById('tv');
+
+// Start TV button
+startBtn.addEventListener('click', () => {
+  tv.muted = false; // enable sound
+  startScreen.style.display = 'none';
+  playNext();
+});
 
 // Preload next video for seamless looping
 function playNext() {
@@ -14,7 +23,7 @@ function playNext() {
   const newVideo = document.createElement('video');
   newVideo.src = nextVideo;
   newVideo.autoplay = true;
-  newVideo.muted = true;
+  newVideo.muted = false;
   newVideo.style.position = 'absolute';
   newVideo.style.top = 0;
   newVideo.style.left = 0;
@@ -30,9 +39,6 @@ function playNext() {
   document.body.appendChild(newVideo);
   current = (current + 1) % videos.length;
 }
-
-// Start the loop
-playNext();
 
 // Live clock
 function updateTime() {
