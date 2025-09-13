@@ -3,7 +3,7 @@ const startScreen = document.getElementById('start-screen');
 const startBtn = document.getElementById('start-btn');
 
 // Local video files
-const videos = ["video1.mp4", "video2.mp4", "video3.mp4", "video4.mp4", "video5.mp4", "video6.mp4", "video7.mp4", "video8.mp4"];
+const videos = ["video1.mp4", "video2.mp4", "video3.mp4", "video4.mp4"];
 let current = 0;
 
 // Load first video
