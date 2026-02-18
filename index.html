@@ -1,43 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hinson TV Beta</title>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
+<input type="file" id="romInput" accept=".nes">
+<canvas id="screen" width="256" height="240"></canvas>
+<script src="jsnes.min.js"></script> <!-- or your own core -->
+<script>
+  const canvas = document.getElementById('screen');
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.createImageData(256, 240);
 
-<!-- Start Screen -->
-<div id="start-screen">
-  <button id="start-btn">Connect to the Channel</button>
-</div>
+  const nes = new jsnes.NES({
+    onFrame(frameBuffer) {
+      // frameBuffer is usually an array of 256*240*4 RGBA bytes
+      imageData.data.set(frameBuffer);
+      ctx.putImageData(imageData, 0, 0);
+    },
+    onAudioSample(left, right) {
+      // send to Web Audio API if you want sound
+    }
+  });
 
-<!-- Top Bar -->
-<div id="top-bar">
-  <div id="channel-name">Hinson TV Beta</div>
-  <div id="live-time"></div>
-</div>
+  document.getElementById('romInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const arrayBuffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    // jsnes expects a binary string; other cores may want Uint8Array directly
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    nes.loadROM(binary);
 
-<!-- Video Container -->
-<div id="video-container">
-  <video id="tv" playsinline></video>
-</div>
-
-<!-- Program Section (separate from video) -->
-<div id="program-section">
-  <div id="programs">
-    <div class="program"><div class="program-time">08:00</div><div class="program-title">Morning News</div></div>
-    <div class="program"><div class="program-time">09:00</div><div class="program-title">Cartoon Hour</div></div>
-    <div class="program"><div class="program-time">10:00</div><div class="program-title">Cooking Show</div></div>
-    <div class="program"><div class="program-time">11:00</div><div class="program-title">Documentary</div></div>
-    <div class="program"><div class="program-time">12:00</div><div class="program-title">Music Videos</div></div>
-    <div class="program"><div class="program-time">13:00</div><div class="program-title">Talk Show</div></div>
-    <div class="program"><div class="program-time">14:00</div><div class="program-title">Sports Highlights</div></div>
-    <div class="program"><div class="program-time">15:00</div><div class="program-title">Drama Series</div></div>
-  </div>
-</div>
-
-<script src="script.js"></script>
-</body>
-</html>
+    // Start running frames (e.g., 60fps)
+    function loop() {
+      nes.frame();
+      requestAnimationFrame(loop);
+    }
+    loop();
+  });
+</script>
