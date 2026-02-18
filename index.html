@@ -1,37 +1,480 @@
-<input type="file" id="romInput" accept=".nes">
-<canvas id="screen" width="256" height="240"></canvas>
-<script src="jsnes.min.js"></script> <!-- or your own core -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>NES Emulator</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #111;
+      color: #eee;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+    #app {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+    #game-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: #000;
+    }
+    canvas {
+      image-rendering: pixelated;
+      width: 100%;
+      max-width: calc(100vh * (256/240));
+      height: auto;
+      border: 2px solid #444;
+      background: #000;
+    }
+    #sidebar {
+      width: 280px;
+      background: #181818;
+      border-left: 1px solid #333;
+      display: flex;
+      flex-direction: column;
+    }
+    #sidebar-top {
+      padding: 10px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #game-list-container {
+      flex: 1;
+      overflow-y: auto;
+      border-top: 1px solid #333;
+      border-bottom: 1px solid #333;
+    }
+    #game-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    #game-list li {
+      padding: 6px 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #222;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #game-list li:hover {
+      background: #252525;
+    }
+    #game-list li.active {
+      background: #3a3a3a;
+    }
+    #sidebar-bottom {
+      padding: 10px;
+      font-size: 14px;
+    }
+    button {
+      background: #333;
+      color: #eee;
+      border: 1px solid #555;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    button:hover {
+      background: #444;
+    }
+    input[type="file"] {
+      font-size: 12px;
+      color: #ccc;
+    }
+    #mobile-controls {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      display: none;
+      z-index: 10;
+      font-size: 12px;
+      color: #fff;
+      user-select: none;
+    }
+    #mobile-controls .dpad, #mobile-controls .buttons {
+      display: inline-block;
+      margin: 5px;
+    }
+    #mobile-controls button {
+      width: 40px;
+      height: 40px;
+      margin: 2px;
+      border-radius: 6px;
+      background: rgba(80,80,80,0.8);
+      border: 1px solid #aaa;
+      font-size: 14px;
+    }
+    #mobile-controls .dpad-grid {
+      display: grid;
+      grid-template-columns: 40px 40px 40px;
+      grid-template-rows: 40px 40px 40px;
+      justify-items: center;
+      align-items: center;
+    }
+    #mobile-controls .dpad-grid span {
+      width: 40px;
+      height: 40px;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="game-area">
+    <canvas id="screen" width="256" height="240"></canvas>
+
+    <div id="mobile-controls">
+      <div class="dpad">
+        <div class="dpad-grid">
+          <span></span>
+          <button data-btn="UP">▲</button>
+          <span></span>
+          <button data-btn="LEFT">◀</button>
+          <span></span>
+          <button data-btn="RIGHT">▶</button>
+          <span></span>
+          <button data-btn="DOWN">▼</button>
+          <span></span>
+        </div>
+      </div>
+      <div class="buttons">
+        <div>
+          <button data-btn="A">A</button>
+          <button data-btn="B">B</button>
+        </div>
+        <div>
+          <button data-btn="START">Start</button>
+          <button data-btn="SELECT">Sel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sidebar">
+    <div id="sidebar-top">
+      <h2 style="margin:0;font-size:18px;">Games</h2>
+      <input type="file" id="romInput" accept=".nes" multiple>
+      <button id="clearGamesBtn">Clear All Games</button>
+      <div style="margin-top:8px;">
+        <button id="saveStateBtn">Save State</button>
+        <button id="loadStateBtn">Load State</button>
+        <button id="downloadStateBtn">Download Save</button>
+        <input type="file" id="uploadStateInput" accept=".json" style="margin-top:4px;">
+      </div>
+    </div>
+
+    <div id="game-list-container">
+      <ul id="game-list"></ul>
+    </div>
+
+    <div id="sidebar-bottom">
+      <h3 style="margin-top:0;">Controls</h3>
+      <p><strong>Move:</strong> WASD or Arrow Keys</p>
+      <p><strong>A Button:</strong> O</p>
+      <p><strong>B Button:</strong> P</p>
+      <p><strong>Start:</strong> Enter</p>
+      <p><strong>Select:</strong> Shift</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
 <script>
-  const canvas = document.getElementById('screen');
-  const ctx = canvas.getContext('2d');
+  const canvas = document.getElementById("screen");
+  const ctx = canvas.getContext("2d");
   const imageData = ctx.createImageData(256, 240);
 
   const nes = new jsnes.NES({
     onFrame(frameBuffer) {
-      // frameBuffer is usually an array of 256*240*4 RGBA bytes
       imageData.data.set(frameBuffer);
       ctx.putImageData(imageData, 0, 0);
     },
-    onAudioSample(left, right) {
-      // send to Web Audio API if you want sound
+    onAudioSample() {}
+  });
+
+  let currentGameName = null;
+  let db = null;
+
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open("nes-emulator", 1);
+      request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains("roms")) {
+          db.createObjectStore("roms", { keyPath: "name" });
+        }
+        if (!db.objectStoreNames.contains("saves")) {
+          db.createObjectStore("saves", { keyPath: "name" });
+        }
+      };
+      request.onsuccess = (e) => resolve(e.target.result);
+      request.onerror = (e) => reject(e.target.error);
+    });
+  }
+
+  async function initDB() {
+    db = await openDB();
+    loadGameList();
+  }
+
+  function addROMToDB(name, data) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction("roms", "readwrite");
+      const store = tx.objectStore("roms");
+      store.put({ name, data });
+      tx.oncomplete = () => resolve();
+      tx.onerror = (e) => reject(e.target.error);
+    });
+  }
+
+  function getROMFromDB(name) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction("roms", "readonly");
+      const store = tx.objectStore("roms");
+      const req = store.get(name);
+      req.onsuccess = () => resolve(req.result ? req.result.data : null);
+      req.onerror = (e) => reject(e.target.error);
+    });
+  }
+
+  function getAllROMs() {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction("roms", "readonly");
+      const store = tx.objectStore("roms");
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = (e) => reject(e.target.error);
+    });
+  }
+
+  function clearAllROMs() {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction("roms", "readwrite");
+      const store = tx.objectStore("roms");
+      const req = store.clear();
+      req.onsuccess = () => resolve();
+      req.onerror = (e) => reject(e.target.error);
+    });
+  }
+
+  function saveStateToDB(name, state) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction("saves", "readwrite");
+      const store = tx.objectStore("saves");
+      store.put({ name, state });
+      tx.oncomplete = () => resolve();
+      tx.onerror = (e) => reject(e.target.error);
+    });
+  }
+
+  function getStateFromDB(name) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction("saves", "readonly");
+      const store = tx.objectStore("saves");
+      const req = store.get(name);
+      req.onsuccess = () => resolve(req.result ? req.result.state : null);
+      req.onerror = (e) => reject(e.target.error);
+    });
+  }
+
+  async function loadGameList() {
+    const list = document.getElementById("game-list");
+    list.innerHTML = "";
+    const roms = await getAllROMs();
+    roms.forEach(rom => {
+      const li = document.createElement("li");
+      li.textContent = rom.name;
+      li.dataset.name = rom.name;
+      li.addEventListener("click", () => {
+        selectGame(rom.name);
+      });
+      list.appendChild(li);
+    });
+  }
+
+  function setActiveGameInList(name) {
+    const items = document.querySelectorAll("#game-list li");
+    items.forEach(li => {
+      li.classList.toggle("active", li.dataset.name === name);
+    });
+  }
+
+  async function selectGame(name) {
+    const data = await getROMFromDB(name);
+    if (!data) return;
+    currentGameName = name;
+    setActiveGameInList(name);
+
+    let binary = "";
+    const bytes = new Uint8Array(data);
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    nes.loadROM(binary);
+  }
+
+  document.getElementById("romInput").addEventListener("change", async (e) => {
+    const files = e.target.files;
+    for (const file of files) {
+      const arrayBuffer = await file.arrayBuffer();
+      await addROMToDB(file.name, arrayBuffer);
+    }
+    await loadGameList();
+    if (files.length > 0) {
+      selectGame(files[0].name);
     }
   });
 
-  document.getElementById('romInput').addEventListener('change', async (e) => {
+  document.getElementById("clearGamesBtn").addEventListener("click", async () => {
+    await clearAllROMs();
+    await loadGameList();
+    currentGameName = null;
+  });
+
+  document.getElementById("saveStateBtn").addEventListener("click", async () => {
+    if (!currentGameName) return;
+    const state = nes.toJSON();
+    await saveStateToDB(currentGameName, state);
+  });
+
+  document.getElementById("loadStateBtn").addEventListener("click", async () => {
+    if (!currentGameName) return;
+    const state = await getStateFromDB(currentGameName);
+    if (state) {
+      nes.fromJSON(state);
+    }
+  });
+
+  document.getElementById("downloadStateBtn").addEventListener("click", () => {
+    if (!currentGameName) return;
+    const state = nes.toJSON();
+    const blob = new Blob([JSON.stringify(state)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = currentGameName.replace(/\.nes$/i, "") + "_save.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("uploadStateInput").addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const arrayBuffer = await file.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
-    // jsnes expects a binary string; other cores may want Uint8Array directly
-    let binary = '';
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-    nes.loadROM(binary);
-
-    // Start running frames (e.g., 60fps)
-    function loop() {
-      nes.frame();
-      requestAnimationFrame(loop);
+    const text = await file.text();
+    const state = JSON.parse(text);
+    nes.fromJSON(state);
+    if (currentGameName) {
+      await saveStateToDB(currentGameName, state);
     }
-    loop();
   });
+
+  function startEmulationLoop() {
+    function frame() {
+      nes.frame();
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  const keys = {
+    38: jsnes.Controller.BUTTON_UP,
+    40: jsnes.Controller.BUTTON_DOWN,
+    37: jsnes.Controller.BUTTON_LEFT,
+    39: jsnes.Controller.BUTTON_RIGHT,
+    87: jsnes.Controller.BUTTON_UP,
+    83: jsnes.Controller.BUTTON_DOWN,
+    65: jsnes.Controller.BUTTON_LEFT,
+    68: jsnes.Controller.BUTTON_RIGHT,
+    79: jsnes.Controller.BUTTON_A,
+    80: jsnes.Controller.BUTTON_B,
+    13: jsnes.Controller.BUTTON_START,
+    16: jsnes.Controller.BUTTON_SELECT
+  };
+
+  document.addEventListener("keydown", (e) => {
+    if (keys[e.keyCode] !== undefined) {
+      nes.buttonDown(1, keys[e.keyCode]);
+      e.preventDefault();
+    }
+  });
+
+  document.addEventListener("keyup", (e) => {
+    if (keys[e.keyCode] !== undefined) {
+      nes.buttonUp(1, keys[e.keyCode]);
+      e.preventDefault();
+    }
+  });
+
+  function isMobile() {
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
+
+  function setupMobileControls() {
+    const mc = document.getElementById("mobile-controls");
+    if (!isMobile()) {
+      mc.style.display = "none";
+      return;
+    }
+    mc.style.display = "block";
+
+    const map = {
+      UP: jsnes.Controller.BUTTON_UP,
+      DOWN: jsnes.Controller.BUTTON_DOWN,
+      LEFT: jsnes.Controller.BUTTON_LEFT,
+      RIGHT: jsnes.Controller.BUTTON_RIGHT,
+      A: jsnes.Controller.BUTTON_A,
+      B: jsnes.Controller.BUTTON_B,
+      START: jsnes.Controller.BUTTON_START,
+      SELECT: jsnes.Controller.BUTTON_SELECT
+    };
+
+    mc.querySelectorAll("button[data-btn]").forEach(btn => {
+      const type = btn.dataset.btn;
+      const code = map[type];
+      let active = false;
+
+      const down = (e) => {
+        e.preventDefault();
+        if (!active) {
+          nes.buttonDown(1, code);
+          active = true;
+        }
+      };
+      const up = (e) => {
+        e.preventDefault();
+        if (active) {
+          nes.buttonUp(1, code);
+          active = false;
+        }
+      };
+
+      btn.addEventListener("touchstart", down, { passive: false });
+      btn.addEventListener("touchend", up, { passive: false });
+      btn.addEventListener("touchcancel", up, { passive: false });
+      btn.addEventListener("mousedown", down);
+      btn.addEventListener("mouseup", up);
+      btn.addEventListener("mouseleave", up);
+    });
+  }
+
+  (async function main() {
+    await initDB();
+    setupMobileControls();
+    startEmulationLoop();
+  })();
 </script>
+</body>
+</html>
